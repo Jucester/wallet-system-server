@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common'
+import { forwardRef, Module } from '@nestjs/common'
 import { MongooseModule } from '@nestjs/mongoose'
 
 import { CustomersService } from './application/services/customers.service'
@@ -13,6 +13,7 @@ import { WalletsRepositoryDomain } from './domain/repository/wallets.repository.
 import { UtilsSharedService } from '../shared/application/services/utils-shared.service'
 import { UsersModule } from '../users/users.module'
 import { AuthModule } from '../auth/auth.module'
+import { PaymentsModule } from '../payments/payments.module'
 
 @Module({
   imports: [
@@ -22,6 +23,7 @@ import { AuthModule } from '../auth/auth.module'
     ]),
     UsersModule,
     AuthModule,
+    forwardRef(() => PaymentsModule),
   ],
   controllers: [CustomersController],
   providers: [

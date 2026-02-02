@@ -204,4 +204,36 @@ describe('Test wallets - recargarBilletera & consultarSaldo (e2e)', () => {
       expect(response.status).toBe(401)
     })
   })
+
+  describe('GET /customers/wallet/history - Transaction history', () => {
+    it('should return empty transaction history initially', async () => {
+      const response = await request(app.getHttpServer())
+        .get(`${endpoint}/wallet/history`)
+        .set('Authorization', `Bearer ${customerToken}`)
+
+      expect(response.status).toBe(200)
+      expect(response.body).toHaveProperty('metadata')
+      expect(response.body).toHaveProperty('data')
+      expect(response.body.metadata).toHaveProperty('totalDocs')
+      expect(response.body.metadata).toHaveProperty('page')
+      expect(response.body.metadata).toHaveProperty('limit')
+      expect(Array.isArray(response.body.data)).toBe(true)
+    })
+
+    it('should return paginated transaction history with query params', async () => {
+      const response = await request(app.getHttpServer())
+        .get(`${endpoint}/wallet/history?page=1&limit=5`)
+        .set('Authorization', `Bearer ${customerToken}`)
+
+      expect(response.status).toBe(200)
+      expect(response.body.metadata.page).toBe(1)
+      expect(response.body.metadata.limit).toBe(5)
+    })
+
+    it('should fail with 401 when no token is provided', async () => {
+      const response = await request(app.getHttpServer()).get(`${endpoint}/wallet/history`)
+
+      expect(response.status).toBe(401)
+    })
+  })
 })

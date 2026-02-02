@@ -1,4 +1,4 @@
-import { Body, Controller, Get, HttpCode, Post, UseGuards } from '@nestjs/common'
+import { Body, Controller, Get, HttpCode, Post, Query, UseGuards } from '@nestjs/common'
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger'
 
 import { CustomersService } from '../../../application/services/customers.service'
@@ -7,6 +7,7 @@ import { RegisterCustomerDto } from '../../../domain/dto/register-customer.dto'
 import { RechargeWalletDto } from '../../../domain/dto/recharge-wallet.dto'
 import { JwtAuthGuard } from '../../../../auth/infrastructure/passport/guards/jwt-auth.guard'
 import { AuthUser } from '../../../../shared/infrastructure/nestjs/decorators/auth-user.decorator'
+import { QueryPaginationDto } from '../../../../shared/domain/dto/query-pagination.dto'
 
 @ApiTags('customers')
 @Controller('customers')
@@ -46,5 +47,13 @@ export class CustomersController {
   @ApiOperation({ summary: 'Recharge wallet (recargarBilletera)' })
   async rechargeWallet(@AuthUser('_id') userId: string, @Body() body: RechargeWalletDto) {
     return await this._walletsService.rechargeByUserId(userId, body.amount)
+  }
+
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  @Get('wallet/history')
+  @ApiOperation({ summary: 'Get transaction history (historial de movimientos)' })
+  async getTransactionHistory(@AuthUser('_id') userId: string, @Query() query: QueryPaginationDto) {
+    return await this._walletsService.getTransactionHistory(userId, query)
   }
 }

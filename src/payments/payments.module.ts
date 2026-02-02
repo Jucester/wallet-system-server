@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common'
+import { forwardRef, Module } from '@nestjs/common'
 import { MongooseModule } from '@nestjs/mongoose'
 
 import { PaymentsService } from './application/services/payments.service'
@@ -20,7 +20,7 @@ import { CustomersModule } from '../customers/customers.module'
       { name: 'PaymentSession', schema: PaymentSessionSchemaMongoose },
       { name: 'Transaction', schema: TransactionSchemaMongoose },
     ]),
-    CustomersModule,
+    forwardRef(() => CustomersModule),
   ],
   controllers: [PaymentsController],
   providers: [
@@ -37,6 +37,13 @@ import { CustomersModule } from '../customers/customers.module'
     },
     UtilsSharedService,
   ],
-  exports: [PaymentsService, TransactionsService],
+  exports: [
+    PaymentsService,
+    TransactionsService,
+    {
+      provide: TransactionsRepositoryDomain,
+      useClass: TransactionsRepositoryMongoose,
+    },
+  ],
 })
 export class PaymentsModule {}
