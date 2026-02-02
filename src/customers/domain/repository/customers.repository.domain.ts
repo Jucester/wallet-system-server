@@ -10,4 +10,6 @@ export abstract class CustomersRepositoryDomain {
   abstract findByDocument(document: string): Promise<IReturnDomain<CustomerEntity, Error>>
 
   abstract findByPhone(phone: string): Promise<IReturnDomain<CustomerEntity, Error>>
+
+  abstract findByDocumentAndPhone(document: string, phone: string): Promise<IReturnDomain<CustomerEntity, Error>>
 }

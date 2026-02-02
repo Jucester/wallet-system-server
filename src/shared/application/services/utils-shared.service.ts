@@ -17,10 +17,10 @@ export class UtilsSharedService {
     }
   }
 
-  checkErrIdNotFoundThrowErr(arg: { result: any }) {
-    const { result } = arg
+  checkErrIdNotFoundThrowErr(arg: { result: any; message?: string }) {
+    const { result, message } = arg
     if (!result) {
-      throw new NotFoundException(MessagesEntity.ERR_ID_NOT_FOUND)
+      throw new NotFoundException(message || MessagesEntity.ERR_ID_NOT_FOUND)
     }
   }
 

@@ -2,6 +2,7 @@ import { Document, Schema as MongooseSchema } from 'mongoose'
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose'
 import { IPaymentSessionEntity } from '../../../domain/entities/payment-session.domain'
 import { PaymentStatus } from '../../../domain/entities/payment-status.enum'
+import { PaymentType } from '../../../domain/entities/payment-type.enum'
 
 @Schema({
   versionKey: false,
@@ -17,6 +18,13 @@ export class PaymentSessionSchemaBaseMongoose extends Document<string> implement
 
   @Prop({
     required: true,
+    enum: PaymentType,
+    index: true,
+  })
+  type: PaymentType
+
+  @Prop({
+    required: true,
     type: MongooseSchema.Types.UUID,
     ref: 'Customer',
     index: true,
@@ -29,6 +37,21 @@ export class PaymentSessionSchemaBaseMongoose extends Document<string> implement
     ref: 'Wallet',
   })
   walletId: string
+
+  @Prop({
+    required: true,
+    type: MongooseSchema.Types.UUID,
+    ref: 'Customer',
+    index: true,
+  })
+  destinationCustomerId: string
+
+  @Prop({
+    required: true,
+    type: MongooseSchema.Types.UUID,
+    ref: 'Wallet',
+  })
+  destinationWalletId: string
 
   @Prop({
     required: true,

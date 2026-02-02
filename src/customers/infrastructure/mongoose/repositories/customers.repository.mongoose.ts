@@ -30,4 +30,8 @@ export class CustomersRepositoryMongoose implements CustomersRepositoryDomain {
   async findByPhone(phone: string): Promise<IReturnDomain<CustomerEntity, Error>> {
     return this.base.findOne({ phone })
   }
+
+  async findByDocumentAndPhone(document: string, phone: string): Promise<IReturnDomain<CustomerEntity, Error>> {
+    return this.base.findOne({ document, phone })
+  }
 }

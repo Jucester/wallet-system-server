@@ -1,5 +1,6 @@
 import { Exclude, Expose, Transform } from 'class-transformer'
 import { transformIdToString } from '../../../shared/domain/helpers/normalize-id-shared.helper'
+import { PaymentType } from '../entities/payment-type.enum'
 
 @Exclude()
 export class RequestPaymentResponseDto {
@@ -17,6 +18,9 @@ export class ConfirmPaymentResponseDto {
   message: string
 
   @Expose()
+  type: PaymentType
+
+  @Expose()
   previousBalance: number
 
   @Expose()
@@ -24,4 +28,14 @@ export class ConfirmPaymentResponseDto {
 
   @Expose()
   newBalance: number
+}
+
+@Exclude()
+export class SendPaymentResponseDto {
+  @Expose()
+  @Transform(transformIdToString)
+  sessionId: string
+
+  @Expose()
+  message: string
 }
