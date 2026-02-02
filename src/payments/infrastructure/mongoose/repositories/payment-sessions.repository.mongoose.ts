@@ -30,12 +30,12 @@ export class PaymentSessionsRepositoryMongoose implements PaymentSessionsReposit
     try {
       const result = await this._model.findOne({ _id: sessionId, customerId })
       if (!result) {
-        return [null, new Error('Payment session not found')]
+        return [null, null]
       }
       return [this.base.mapperModelToDomain(result), null]
     } catch (error) {
       this.logger.error(error)
-      return [null, error as Error]
+      return [null, null]
     }
   }
 

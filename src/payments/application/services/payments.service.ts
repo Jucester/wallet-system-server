@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, Logger, NotFoundException } from '@nestjs/common'
+import { Injectable, Logger } from '@nestjs/common'
 import { plainToInstance } from 'class-transformer'
 import { v4 as uuidv4 } from 'uuid'
 
@@ -25,25 +25,19 @@ export class PaymentsService {
     private readonly _otpService: OtpService,
     private readonly _transactionsService: TransactionsService,
     private readonly _utilsSharedService: UtilsSharedService,
-  ) {}
+  ) { }
 
   async requestPayment(userId: string, amount: number): Promise<RequestPaymentResponseDto> {
     const [customer, errCustomer] = await this._customersRepository.findByUserId(userId)
     this._utilsSharedService.checkErrDatabaseThrowErr({ err: errCustomer })
-
-    if (!customer) {
-      throw new NotFoundException('Customer not found')
-    }
+    this._utilsSharedService.checkErrIdNotFoundThrowErr({ result: customer })
 
     const [wallet, errWallet] = await this._walletsRepository.findByCustomerId(customer._id)
     this._utilsSharedService.checkErrDatabaseThrowErr({ err: errWallet })
-
-    if (!wallet) {
-      throw new NotFoundException('Wallet not found')
-    }
+    this._utilsSharedService.checkErrIdNotFoundThrowErr({ result: wallet })
 
     if (wallet.balance < amount) {
-      throw new BadRequestException('Saldo insuficiente para realizar el pago')
+      this._utilsSharedService.checkErrValidationThrowErr({ message: 'Saldo insuficiente para realizar el pago' })
     }
 
     const otp = this._otpService.generateOtp()
@@ -65,7 +59,6 @@ export class PaymentsService {
     const [session, errSession] = await this._paymentSessionsRepository.base.create(sessionDomain)
     this._utilsSharedService.checkErrDatabaseThrowErr({ err: errSession })
 
-    // Log OTP for testing (in production, send via email)
     this.logger.log(`[PAYMENT] OTP for session ${session._id}: ${otp}`)
 
     return plainToInstance(RequestPaymentResponseDto, {
@@ -74,51 +67,35 @@ export class PaymentsService {
     })
   }
 
-  async confirmPayment(
-    userId: string,
-    sessionId: string,
-    token: string,
-  ): Promise<ConfirmPaymentResponseDto> {
+  async confirmPayment(userId: string, sessionId: string, token: string): Promise<ConfirmPaymentResponseDto> {
     const [customer, errCustomer] = await this._customersRepository.findByUserId(userId)
     this._utilsSharedService.checkErrDatabaseThrowErr({ err: errCustomer })
+    this._utilsSharedService.checkErrIdNotFoundThrowErr({ result: customer })
 
-    if (!customer) {
-      throw new NotFoundException('Customer not found')
-    }
-
-    const [session, errSession] = await this._paymentSessionsRepository.findByIdAndCustomerId(
-      sessionId,
-      customer._id,
-    )
+    const [session, errSession] = await this._paymentSessionsRepository.findByIdAndCustomerId(sessionId, customer._id)
     this._utilsSharedService.checkErrDatabaseThrowErr({ err: errSession })
-
-    if (!session) {
-      throw new NotFoundException('Sesión de pago no encontrada')
-    }
+    this._utilsSharedService.checkErrIdNotFoundThrowErr({ result: session })
 
     if (session.status !== PaymentStatus.Pending) {
-      throw new BadRequestException(`La sesión de pago ya fue ${session.status}`)
+      this._utilsSharedService.checkErrValidationThrowErr({ message: `La sesión de pago ya fue ${session.status}` })
     }
 
     if (new Date() > new Date(session.expiresAt)) {
       await this._paymentSessionsRepository.updateStatus(sessionId, PaymentStatus.Expired)
-      throw new BadRequestException('El token ha expirado. Solicite un nuevo pago.')
+      this._utilsSharedService.checkErrValidationThrowErr({ message: 'El token ha expirado. Solicite un nuevo pago.' })
     }
 
     const isValidOtp = this._otpService.verifyOtp(token, session.otp)
     if (!isValidOtp) {
-      throw new BadRequestException('Token inválido')
+      this._utilsSharedService.checkErrValidationThrowErr({ message: 'Token inválido' })
     }
 
     const [wallet, errWallet] = await this._walletsRepository.findByCustomerId(customer._id)
     this._utilsSharedService.checkErrDatabaseThrowErr({ err: errWallet })
-
-    if (!wallet) {
-      throw new NotFoundException('Wallet not found')
-    }
+    this._utilsSharedService.checkErrIdNotFoundThrowErr({ result: wallet })
 
     if (wallet.balance < session.amount) {
-      throw new BadRequestException('Saldo insuficiente para realizar el pago')
+      this._utilsSharedService.checkErrValidationThrowErr({ message: 'Saldo insuficiente para realizar el pago' })
     }
 
     const previousBalance = wallet.balance

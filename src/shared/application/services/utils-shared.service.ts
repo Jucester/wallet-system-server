@@ -37,4 +37,11 @@ export class UtilsSharedService {
       throw new BadRequestException(MessagesEntity.genErrFieldAlreadyExist(field))
     }
   }
+
+  checkErrValidationThrowErr(arg: { message: string }) {
+    const { message } = arg
+    if (message) {
+      throw new BadRequestException(message)
+    }
+  }
 }
