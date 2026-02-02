@@ -1,0 +1,56 @@
+import { IsEnum, IsNotEmpty, IsNumber } from 'class-validator'
+import { Transform } from 'class-transformer'
+import { Environment } from './environment.enum'
+
+export class EnvironmentVariablesDto {
+  @IsNumber()
+  PORT: number
+
+  @IsNotEmpty()
+  @IsEnum(Environment)
+  NODE_ENV: Environment
+
+  @IsNotEmpty()
+  CORS_ORIGIN: string
+
+  @IsNotEmpty()
+  APP_NAME: string
+
+  @IsNotEmpty()
+  APP_URL: string
+
+  @IsNotEmpty()
+  DB_MONGO: string
+
+  @IsNotEmpty()
+  DB_SQL: string
+
+  @IsNotEmpty()
+  JWT_SECRET: string
+
+  @IsNotEmpty()
+  JWT_EXPIRES_IN: string
+
+  @IsNotEmpty()
+  MAIL_HOST: string
+
+  @IsNotEmpty()
+  MAIL_PORT: number
+
+  @IsNotEmpty()
+  MAIL_USER: string
+
+  @IsNotEmpty()
+  MAIL_PASS: string
+
+  @IsNotEmpty()
+  MAIL_FROM: string
+
+  @IsNotEmpty()
+  @Transform(({ value }) => value.toString() === 'true')
+  MAIL_DEBUG: string
+
+  // @IsNotEmpty()
+  // @Transform(({ value }) => value.toString() === 'true')
+  // MAIL_SECURE: string
+}
