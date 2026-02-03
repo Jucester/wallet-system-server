@@ -2,3 +2,7 @@
 /dist
 /logs
 /coverage
+
+# Environment files (contain secrets)
+testing.env
+.env.*
