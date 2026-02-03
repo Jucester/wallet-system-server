@@ -46,4 +46,4 @@ import { CustomersModule } from '../customers/customers.module'
     },
   ],
 })
-export class PaymentsModule {}
+export class PaymentsModule { }

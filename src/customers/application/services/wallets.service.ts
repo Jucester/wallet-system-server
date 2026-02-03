@@ -19,7 +19,7 @@ export class WalletsService {
     private readonly _customersRepository: CustomersRepositoryDomain,
     private readonly _transactionsRepository: TransactionsRepositoryDomain,
     private readonly _utilsSharedService: UtilsSharedService,
-  ) {}
+  ) { }
 
   async createWalletForCustomer(customerId: string): Promise<WalletEntity> {
     const walletDomain = plainToInstance(WalletEntity, {
@@ -104,17 +104,11 @@ export class WalletsService {
   ): Promise<PaginateResultDomain<TransactionEntity>> {
     const [customer, errCustomer] = await this._customersRepository.findByUserId(userId)
     this._utilsSharedService.checkErrDatabaseThrowErr({ err: errCustomer })
-
-    if (!customer) {
-      throw new NotFoundException('Customer not found for this user')
-    }
+    this._utilsSharedService.checkErrIdNotFoundThrowErr({ result: customer })
 
     const [wallet, errWallet] = await this._walletsRepository.findByCustomerId(customer._id)
     this._utilsSharedService.checkErrDatabaseThrowErr({ err: errWallet })
-
-    if (!wallet) {
-      throw new NotFoundException('Wallet not found for this customer')
-    }
+    this._utilsSharedService.checkErrIdNotFoundThrowErr({ result: wallet })
 
     const [transactions, errTransactions] = await this._transactionsRepository.findByWalletId(
       wallet._id,

@@ -31,14 +31,12 @@ export class TransactionsRepositoryMongoose implements TransactionsRepositoryDom
     walletId: string,
     queryPagination?: QueryPaginationDto,
   ): Promise<IReturnDomain<PaginateResultDomain<TransactionEntity>, Error>> {
-    const pipeline = [
-      { $match: { walletId } },
-      { $sort: { createdAt: -1 } },
-    ]
-
-    return this.base.rawQueryPaginate({
-      pipeline,
-      options: new OptionsRepositoryDomain({ ...queryPagination, disableSort: true }),
+    return this.base.findPaginate({
+      query: { walletId },
+      options: new OptionsRepositoryDomain({
+        ...queryPagination,
+        sort: { createdAt: -1 },
+      }),
     })
   }
 }

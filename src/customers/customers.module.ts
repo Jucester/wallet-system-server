@@ -53,4 +53,4 @@ import { PaymentsModule } from '../payments/payments.module'
     MongooseModule,
   ],
 })
-export class CustomersModule {}
+export class CustomersModule { }

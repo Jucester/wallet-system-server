@@ -52,7 +52,6 @@ export class PaymentsService {
       message: 'Billetera del pagador no encontrada',
     })
 
-  console.log('merchantId', merchantId)
     const [merchant, errMerchant] = await this._customersRepository.base.findById(merchantId)
     this._utilsSharedService.checkErrDatabaseThrowErr({ err: errMerchant })
     this._utilsSharedService.checkErrIdNotFoundThrowErr({
