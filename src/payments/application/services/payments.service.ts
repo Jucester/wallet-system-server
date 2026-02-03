@@ -24,6 +24,7 @@ import { TransactionsService } from './transactions.service'
 export class PaymentsService {
   private readonly logger = new Logger(PaymentsService.name)
   private readonly OTP_EXPIRATION_MINUTES = 5
+  private readonly isTestingEnv = process.env.NODE_ENV === 'testing'
 
   constructor(
     private readonly _paymentSessionsRepository: PaymentSessionsRepositoryDomain,
@@ -116,7 +117,7 @@ export class PaymentsService {
 
     return plainToInstance(RequestPaymentResponseDto, {
       sessionId: session._id,
-      message: `Token de confirmación enviado a tu email. Válido por ${this.OTP_EXPIRATION_MINUTES} minutos.`,
+      message: this._buildOtpMessage(otp),
     })
   }
 
@@ -212,7 +213,7 @@ export class PaymentsService {
 
     return plainToInstance(SendPaymentResponseDto, {
       sessionId: session._id,
-      message: `Token de confirmación enviado a tu email. Válido por ${this.OTP_EXPIRATION_MINUTES} minutos.`,
+      message: this._buildOtpMessage(otp),
     })
   }
 
@@ -316,6 +317,19 @@ export class PaymentsService {
       amountDeducted: session.amount,
       newBalance: updatedSourceWallet.balance,
     })
+  }
+
+  /**
+   * Build OTP message - includes OTP in testing environment for e2e tests
+   */
+  private _buildOtpMessage(otp: string): string {
+    const baseMessage = `Token de confirmación enviado a tu email. Válido por ${this.OTP_EXPIRATION_MINUTES} minutos.`
+
+    if (this.isTestingEnv) {
+      return `${baseMessage} OTP: ${otp}`
+    }
+
+    return baseMessage
   }
 
   /**
