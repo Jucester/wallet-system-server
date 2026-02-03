@@ -16,6 +16,7 @@ export class EmailRepository {
   private user: string
   private pass: string
   private debug: boolean
+  private ssl: boolean
 
   constructor(private readonly configService: ConfigService) {
     this.from = this.configService.get<string>('MAIL_FROM')
@@ -24,6 +25,7 @@ export class EmailRepository {
     this.host = this.configService.get<string>('MAIL_HOST')
     this.port = this.configService.get<number>('MAIL_PORT')
     this.debug = this.configService.get<boolean>('MAIL_DEBUG')
+    this.ssl = this.configService.get<boolean>('MAIL_SSL')
   }
 
   async sendMail(subject: string, to: string, templateData: any, template = 'default') {
@@ -62,7 +64,7 @@ export class EmailRepository {
     return createTransport({
       host: this.host,
       port: this.port,
-      secure: true,
+      secure: false,
       logger: this.debug,
       debug: this.debug,
       auth: {
