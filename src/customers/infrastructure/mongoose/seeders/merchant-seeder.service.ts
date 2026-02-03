@@ -34,6 +34,12 @@ export const MERCHANT_CUSTOMER_DATA = {
   avatar: '🏪',
 }
 
+export const MERCHANT_WALLET_DATA = {
+  _id: uuidv4(),
+  customerId: MERCHANT_CUSTOMER_DATA._id,
+  balance: 0,
+}
+
 @Injectable()
 export class MerchantSeederService implements OnModuleInit {
   private readonly logger = new Logger(MerchantSeederService.name)
@@ -41,6 +47,7 @@ export class MerchantSeederService implements OnModuleInit {
   constructor(
     @InjectModel('User') private readonly userModel: Model<any>,
     @InjectModel('Customer') private readonly customerModel: Model<any>,
+    @InjectModel('Wallet') private readonly walletModel: Model<any>,
   ) {}
 
   async onModuleInit() {
@@ -76,16 +83,24 @@ export class MerchantSeederService implements OnModuleInit {
       // Create merchant customer
       const customer = new this.customerModel(MERCHANT_CUSTOMER_DATA)
       await customer.save()
+      this.logger.log(`🛒 Merchant customer created: ${MERCHANT_CUSTOMER_DATA._id}`)
+
+      // Create merchant wallet
+      const wallet = new this.walletModel(MERCHANT_WALLET_DATA)
+      await wallet.save()
+      this.logger.log(`💰 Merchant wallet created: ${MERCHANT_WALLET_DATA._id}`)
 
       this.logger.log('🏪 Merchant seeded successfully:')
       this.logger.log(`   Customer ID: ${MERCHANT_CUSTOMER_DATA._id}`)
       this.logger.log(`   User ID: ${MERCHANT_USER_DATA._id}`)
+      this.logger.log(`   Wallet ID: ${MERCHANT_WALLET_DATA._id}`)
       this.logger.log(`   Name: ${MERCHANT_USER_DATA.firstName} ${MERCHANT_USER_DATA.lastName}`)
       this.logger.log(`   Email: ${MERCHANT_USER_DATA.email}`)
       this.logger.log(`   Password: ${MERCHANT_USER_DATA.password}`)
       this.logger.log(`   Document: ${MERCHANT_CUSTOMER_DATA.document}`)
       this.logger.log(`   Phone: ${MERCHANT_CUSTOMER_DATA.phone}`)
       this.logger.log(`   Avatar: ${MERCHANT_CUSTOMER_DATA.avatar}`)
+      this.logger.log(`   Balance: ${MERCHANT_WALLET_DATA.balance}`)
 
       return customer
     } catch (error) {
