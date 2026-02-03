@@ -1,29 +1,41 @@
 # Development stage
-FROM node:14 AS development
+FROM node:22 AS development
+
 WORKDIR /app
 
-COPY package*.json ./
-RUN npm ci --only=development
+# Copy package files and yarn.lock
+COPY package.json yarn.lock ./
+
+# Install all dependencies (including devDependencies for build)
+RUN yarn install --frozen-lockfile
 
 COPY . .
-RUN npm run build
+
+RUN yarn build
 
 EXPOSE 3000
-CMD ["npm", "run", "start:dev"]
+
+CMD ["yarn", "start:dev"]
 
 # Production stage
-FROM node:14-alpine AS production
+FROM node:22-alpine AS production
 
 ARG NODE_ENV=production
 ENV NODE_ENV=${NODE_ENV}
 
 WORKDIR /app
 
-COPY package*.json ./
-RUN npm ci --only=production
+# Copy package files and yarn.lock
+COPY package.json yarn.lock ./
 
+# Install only production dependencies
+RUN yarn install --frozen-lockfile --production && yarn cache clean
+
+# Copy built application from development stage
 COPY --from=development /app/dist ./dist
 
 USER node
+
 EXPOSE 3000
+
 CMD ["node", "dist/main.js"]
