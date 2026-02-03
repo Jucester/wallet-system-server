@@ -18,7 +18,6 @@
 - [Description](#description)
 - [Architecture](#architecture)
   - [Folder Structure](#folder-structure)
-  - [Module Dependencies](#module-dependencies)
   - [Entity Relationships](#entity-relationships)
   - [Payment Flow](#payment-flow)
 - [Prerequisites](#prerequisites)
@@ -78,55 +77,6 @@ src/
 │       │   └── schemas/      # Database schemas
 │       └── nestjs/
 │           └── controllers/  # HTTP controllers
-```
-
-### Module Dependencies
-
-```mermaid
-graph TB
-    subgraph Core["Core Modules"]
-        APP[AppModule]
-        SHARED[SharedModule]
-    end
-
-    subgraph Features["Feature Modules"]
-        AUTH[AuthModule]
-        USERS[UsersModule]
-        CUSTOMERS[CustomersModule]
-        PAYMENTS[PaymentsModule]
-        EMAIL[EmailModule]
-    end
-
-    subgraph Infrastructure["Infrastructure"]
-        MONGO[(MongoDB)]
-        JWT[JWT Service]
-        SMTP[SMTP Server]
-    end
-
-    APP --> AUTH
-    APP --> USERS
-    APP --> CUSTOMERS
-    APP --> PAYMENTS
-    APP --> SHARED
-
-    AUTH --> USERS
-    AUTH --> JWT
-
-    CUSTOMERS --> USERS
-    CUSTOMERS --> SHARED
-
-    PAYMENTS --> CUSTOMERS
-    PAYMENTS --> EMAIL
-    PAYMENTS --> USERS
-    PAYMENTS --> SHARED
-
-    EMAIL --> SMTP
-
-    USERS --> MONGO
-    CUSTOMERS --> MONGO
-    PAYMENTS --> MONGO
-
-    SHARED --> MONGO
 ```
 
 ### Entity Relationships
