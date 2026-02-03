@@ -17,6 +17,10 @@
 - [Table of Contents](#table-of-contents)
 - [Description](#description)
 - [Architecture](#architecture)
+  - [Folder Structure](#folder-structure)
+  - [Module Dependencies](#module-dependencies)
+  - [Entity Relationships](#entity-relationships)
+  - [Payment Flow](#payment-flow)
 - [Prerequisites](#prerequisites)
 - [Installation](#installation)
   - [With Docker (Recommended)](#with-docker-recommended)
@@ -57,6 +61,8 @@ ePayco is a backend API for a virtual wallet and payment system that allows:
 
 This project follows **Hexagonal Architecture** (also known as Ports and Adapters) combined with **Domain-Driven Design (DDD)** principles.
 
+### Folder Structure
+
 ```
 src/
 ├── module-name/
@@ -72,6 +78,164 @@ src/
 │       │   └── schemas/      # Database schemas
 │       └── nestjs/
 │           └── controllers/  # HTTP controllers
+```
+
+### Module Dependencies
+
+```mermaid
+graph TB
+    subgraph Core["Core Modules"]
+        APP[AppModule]
+        SHARED[SharedModule]
+    end
+
+    subgraph Features["Feature Modules"]
+        AUTH[AuthModule]
+        USERS[UsersModule]
+        CUSTOMERS[CustomersModule]
+        PAYMENTS[PaymentsModule]
+        EMAIL[EmailModule]
+    end
+
+    subgraph Infrastructure["Infrastructure"]
+        MONGO[(MongoDB)]
+        JWT[JWT Service]
+        SMTP[SMTP Server]
+    end
+
+    APP --> AUTH
+    APP --> USERS
+    APP --> CUSTOMERS
+    APP --> PAYMENTS
+    APP --> SHARED
+
+    AUTH --> USERS
+    AUTH --> JWT
+
+    CUSTOMERS --> USERS
+    CUSTOMERS --> SHARED
+
+    PAYMENTS --> CUSTOMERS
+    PAYMENTS --> EMAIL
+    PAYMENTS --> USERS
+    PAYMENTS --> SHARED
+
+    EMAIL --> SMTP
+
+    USERS --> MONGO
+    CUSTOMERS --> MONGO
+    PAYMENTS --> MONGO
+
+    SHARED --> MONGO
+```
+
+### Entity Relationships
+
+```mermaid
+erDiagram
+    USER ||--o| CUSTOMER : "has"
+    CUSTOMER ||--|| WALLET : "owns"
+    WALLET ||--o{ TRANSACTION : "records"
+    CUSTOMER ||--o{ PAYMENT_SESSION : "initiates"
+
+    USER {
+        uuid _id PK
+        string name
+        string email UK
+        string password
+        enum role
+        boolean isActive
+        datetime createdAt
+        datetime updatedAt
+    }
+
+    CUSTOMER {
+        uuid _id PK
+        uuid userId FK
+        string document UK
+        string phone UK
+        boolean isActive
+        datetime createdAt
+        datetime updatedAt
+    }
+
+    WALLET {
+        uuid _id PK
+        uuid customerId FK
+        decimal balance
+        datetime createdAt
+        datetime updatedAt
+    }
+
+    TRANSACTION {
+        uuid _id PK
+        uuid walletId FK
+        enum type
+        decimal amount
+        decimal balanceBefore
+        decimal balanceAfter
+        string description
+        string referenceId
+        datetime createdAt
+    }
+
+    PAYMENT_SESSION {
+        uuid _id PK
+        uuid customerId FK
+        uuid walletId FK
+        uuid destinationCustomerId FK
+        uuid destinationWalletId FK
+        decimal amount
+        enum type
+        string otpHash
+        enum status
+        datetime expiresAt
+        datetime createdAt
+    }
+```
+
+### Payment Flow
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant U as User
+    participant API as API Gateway
+    participant PS as PaymentsService
+    participant CS as CustomersService
+    participant ES as EmailService
+    participant DB as MongoDB
+
+    rect rgb(68, 68, 68)
+        Note over U,DB: P2P Payment Flow (send)
+    end
+
+    U->>API: POST /payments/send
+    API->>PS: sendPayment(userId, recipientDoc, recipientPhone, amount)
+    PS->>DB: Find sender customer & wallet
+    PS->>DB: Find recipient by document & phone
+    PS->>PS: Validate balance >= amount
+    PS->>PS: Generate 6-digit OTP
+    PS->>DB: Create PaymentSession (status: PENDING)
+    PS->>ES: Send OTP to sender's email
+    ES-->>U: Email with OTP
+    PS-->>API: { sessionId, message }
+    API-->>U: 201 Created
+
+    rect rgb(68, 68, 68)
+        Note over U,DB: Confirm Payment
+    end
+
+    U->>API: POST /payments/confirm
+    API->>PS: confirmPayment(userId, sessionId, otp)
+    PS->>DB: Find PaymentSession
+    PS->>PS: Verify OTP hash
+    PS->>DB: Deduct from sender wallet
+    PS->>DB: Add to recipient wallet
+    PS->>DB: Create Transaction records
+    PS->>DB: Update session status: CONFIRMED
+    PS-->>API: { success, newBalance }
+    API-->>U: 200 OK
 ```
 
 ---

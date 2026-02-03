@@ -20,7 +20,9 @@ services:
 
   mongodb:
     container_name: mongo_prod
-    image: mongo:7
+    image: mongo:latest
+    ports:
+      - '27017:27017'
     volumes:
       - mongo-data:/data/db
     networks:
