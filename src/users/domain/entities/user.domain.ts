@@ -17,6 +17,7 @@ export interface IUserEntity {
   }
 
   fullName?: string
+  logo?: string
 }
 
 @Exclude()
@@ -51,6 +52,9 @@ export class UserEntity implements IUserEntity {
     email: boolean
   }
 
+  @Expose()
+  logo?: string
+
   constructor(arg?: Partial<UserEntity>) {
     this._id = initProp(arg?._id)
     this.firstName = initProp(arg?.firstName)
@@ -61,5 +65,6 @@ export class UserEntity implements IUserEntity {
     this.isBlocked = initProp(arg?.isBlocked)
     this.role = initProp(arg?.role)
     this.verification = initProp(arg?.verification)
+    this.logo = initProp(arg?.logo)
   }
 }

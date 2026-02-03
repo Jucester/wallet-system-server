@@ -20,7 +20,8 @@
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "cross-env NODE_ENV=testing jest --verbose --config ./test/jest-e2e.json",
     "test:int": "cross-env NODE_ENV=testing jest --verbose --detectOpenHandles --config ./test/integration/jest-int.json",
-    "docs": "npx @compodoc/compodoc -p tsconfig.json -s -n 'Code documentation'"
+    "docs": "npx @compodoc/compodoc -p tsconfig.json -s -n 'Code documentation'",
+    "seed:merchant": "ts-node src/users/infrastructure/mongoose/seeders/merchant.seeder.ts"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.485.0",
