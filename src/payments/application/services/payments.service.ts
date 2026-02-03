@@ -15,6 +15,8 @@ import {
 import { UtilsSharedService } from '../../../shared/application/services/utils-shared.service'
 import { CustomersRepositoryDomain } from '../../../customers/domain/repository/customers.repository.domain'
 import { WalletsRepositoryDomain } from '../../../customers/domain/repository/wallets.repository.domain'
+import { UsersRepositoryDomain } from '../../../users/domain/repository/users.repository.domain'
+import { EmailService } from '../../../email/application/services/email.service'
 import { OtpService } from './otp.service'
 import { TransactionsService } from './transactions.service'
 
@@ -27,6 +29,8 @@ export class PaymentsService {
     private readonly _paymentSessionsRepository: PaymentSessionsRepositoryDomain,
     private readonly _customersRepository: CustomersRepositoryDomain,
     private readonly _walletsRepository: WalletsRepositoryDomain,
+    private readonly _usersRepository: UsersRepositoryDomain,
+    private readonly _emailService: EmailService,
     private readonly _otpService: OtpService,
     private readonly _transactionsService: TransactionsService,
     private readonly _utilsSharedService: UtilsSharedService,
@@ -102,9 +106,17 @@ export class PaymentsService {
 
     this.logger.log(`[MERCHANT PAYMENT] OTP for session ${session._id}: ${otp}`)
 
+    // Send OTP via email
+    await this._sendOtpEmail({
+      userId: payer.userId,
+      otp,
+      amount,
+      transactionType: 'Pago a comercio',
+    })
+
     return plainToInstance(RequestPaymentResponseDto, {
       sessionId: session._id,
-      message: `Token de confirmación enviado. Válido por ${this.OTP_EXPIRATION_MINUTES} minutos. (OTP: ${otp})`,
+      message: `Token de confirmación enviado a tu email. Válido por ${this.OTP_EXPIRATION_MINUTES} minutos.`,
     })
   }
 
@@ -190,9 +202,17 @@ export class PaymentsService {
 
     this.logger.log(`[P2P TRANSFER] OTP for session ${session._id}: ${otp}`)
 
+    // Send OTP via email
+    await this._sendOtpEmail({
+      userId: sender.userId,
+      otp,
+      amount,
+      transactionType: 'Transferencia P2P',
+    })
+
     return plainToInstance(SendPaymentResponseDto, {
       sessionId: session._id,
-      message: `Token de confirmación enviado. Válido por ${this.OTP_EXPIRATION_MINUTES} minutos. (OTP: ${otp})`,
+      message: `Token de confirmación enviado a tu email. Válido por ${this.OTP_EXPIRATION_MINUTES} minutos.`,
     })
   }
 
@@ -296,5 +316,46 @@ export class PaymentsService {
       amountDeducted: session.amount,
       newBalance: updatedSourceWallet.balance,
     })
+  }
+
+  /**
+   * Send OTP email to user
+   */
+  private async _sendOtpEmail(params: {
+    userId: string
+    otp: string
+    amount: number
+    transactionType: string
+  }): Promise<void> {
+    const { userId, otp, amount, transactionType } = params
+
+    try {
+      const [user, errUser] = await this._usersRepository.base.findById(userId)
+      if (errUser || !user) {
+        this.logger.warn(`Could not find user ${userId} to send OTP email`)
+        return
+      }
+
+      const fullName = user.firstName + (user.lastName ? ` ${user.lastName}` : '')
+
+      await this._emailService.sendMail(
+        `Código de confirmación - ${transactionType}`,
+        user.email,
+        {
+          fullName,
+          message: `Has solicitado realizar una transacción. Usa el siguiente código para confirmar.`,
+          otpCode: otp,
+          amount: amount.toLocaleString('es-CO'),
+          transactionType,
+          expirationMinutes: this.OTP_EXPIRATION_MINUTES,
+        },
+        'otp',
+      )
+
+      this.logger.log(`OTP email sent to ${user.email}`)
+    } catch (error) {
+      this.logger.error(`Failed to send OTP email: ${error.message}`)
+      // Don't throw - email failure shouldn't block the payment flow
+    }
   }
 }

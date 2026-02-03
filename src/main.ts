@@ -53,15 +53,6 @@ async function bootstrap() {
         policy: 'same-origin',
       },
       xssFilter: true,
-      // hpkp: {
-      //   maxAge: 30 * 24 * 60 * 60,
-      //   sha256s: [
-      //     'AbCdEf123=',
-      //     'XyZwvu456=',
-      //   ],
-      //   includeSubdomains: true,
-      //   reportUri: 'https://example.com/hpkp-report',
-      // },
     }),
   )
 

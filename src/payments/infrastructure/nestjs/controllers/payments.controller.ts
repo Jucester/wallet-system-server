@@ -1,20 +1,24 @@
-import { Body, Controller, HttpCode, Post, UseGuards } from '@nestjs/common'
+import { Body, Controller, Get, HttpCode, Post, Query, UseGuards } from '@nestjs/common'
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger'
 
 import { PaymentsService } from '../../../application/services/payments.service'
+import { TransactionsService } from '../../../application/services/transactions.service'
 import { RequestPaymentDto } from '../../../domain/dto/request-payment.dto'
 import { SendPaymentDto } from '../../../domain/dto/send-payment.dto'
 import { ConfirmPaymentDto } from '../../../domain/dto/confirm-payment.dto'
 import { JwtAuthGuard } from '../../../../auth/infrastructure/passport/guards/jwt-auth.guard'
 import { AuthUser } from '../../../../shared/infrastructure/nestjs/decorators/auth-user.decorator'
+import { QueryPaginationDto } from '../../../../shared/domain/dto/query-pagination.dto'
 
 @ApiTags('payments')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard)
 @Controller('payments')
 export class PaymentsController {
-  constructor(private readonly _paymentsService: PaymentsService) { }
-
+  constructor(
+    private readonly _paymentsService: PaymentsService,
+    private readonly _transactionsService: TransactionsService,
+  ) { }
 
   @Post('request')
   @HttpCode(200)
@@ -44,5 +48,14 @@ export class PaymentsController {
   })
   async confirmPayment(@AuthUser('_id') userId: string, @Body() body: ConfirmPaymentDto) {
     return await this._paymentsService.confirmPayment(userId, body.sessionId, body.token)
+  }
+
+  @Get('history')
+  @ApiOperation({
+    summary: 'Get transaction history',
+    description: 'Get paginated list of all wallet transactions (payments, transfers, recharges).',
+  })
+  async getTransactionHistory(@AuthUser('_id') userId: string, @Query() query: QueryPaginationDto) {
+    return await this._transactionsService.getTransactionHistoryByUserId(userId, query)
   }
 }

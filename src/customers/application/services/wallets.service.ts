@@ -7,17 +7,12 @@ import { WalletsRepositoryDomain } from '../../domain/repository/wallets.reposit
 import { UtilsSharedService } from '../../../shared/application/services/utils-shared.service'
 import { BalanceResponseDto, RechargeResponseDto } from '../../domain/dto/wallet-response.dto'
 import { CustomersRepositoryDomain } from '../../domain/repository/customers.repository.domain'
-import { TransactionsRepositoryDomain } from '../../../payments/domain/repository/transactions.repository.domain'
-import { QueryPaginationDto } from '../../../shared/domain/dto/query-pagination.dto'
-import { PaginateResultDomain } from '../../../shared/domain/repository/generic.repository.domain'
-import { TransactionEntity } from '../../../payments/domain/entities/transaction.domain'
 
 @Injectable()
 export class WalletsService {
   constructor(
     private readonly _walletsRepository: WalletsRepositoryDomain,
     private readonly _customersRepository: CustomersRepositoryDomain,
-    private readonly _transactionsRepository: TransactionsRepositoryDomain,
     private readonly _utilsSharedService: UtilsSharedService,
   ) { }
 
@@ -96,26 +91,5 @@ export class WalletsService {
     const [wallet, err] = await this._walletsRepository.decrementBalance(walletId, amount)
     this._utilsSharedService.checkErrDatabaseThrowErr({ err })
     return wallet
-  }
-
-  async getTransactionHistory(
-    userId: string,
-    queryPagination?: QueryPaginationDto,
-  ): Promise<PaginateResultDomain<TransactionEntity>> {
-    const [customer, errCustomer] = await this._customersRepository.findByUserId(userId)
-    this._utilsSharedService.checkErrDatabaseThrowErr({ err: errCustomer })
-    this._utilsSharedService.checkErrIdNotFoundThrowErr({ result: customer })
-
-    const [wallet, errWallet] = await this._walletsRepository.findByCustomerId(customer._id)
-    this._utilsSharedService.checkErrDatabaseThrowErr({ err: errWallet })
-    this._utilsSharedService.checkErrIdNotFoundThrowErr({ result: wallet })
-
-    const [transactions, errTransactions] = await this._transactionsRepository.findByWalletId(
-      wallet._id,
-      queryPagination,
-    )
-    this._utilsSharedService.checkErrDatabaseThrowErr({ err: errTransactions })
-
-    return transactions
   }
 }

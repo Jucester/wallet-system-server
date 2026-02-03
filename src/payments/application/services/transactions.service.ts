@@ -5,6 +5,8 @@ import { v4 as uuidv4 } from 'uuid'
 import { TransactionEntity } from '../../domain/entities/transaction.domain'
 import { TransactionType } from '../../domain/entities/transaction-type.enum'
 import { TransactionsRepositoryDomain } from '../../domain/repository/transactions.repository.domain'
+import { CustomersRepositoryDomain } from '../../../customers/domain/repository/customers.repository.domain'
+import { WalletsRepositoryDomain } from '../../../customers/domain/repository/wallets.repository.domain'
 import { UtilsSharedService } from '../../../shared/application/services/utils-shared.service'
 import { QueryPaginationDto } from '../../../shared/domain/dto/query-pagination.dto'
 import { PaginateResultDomain } from '../../../shared/domain/repository/generic.repository.domain'
@@ -13,8 +15,10 @@ import { PaginateResultDomain } from '../../../shared/domain/repository/generic.
 export class TransactionsService {
   constructor(
     private readonly _transactionsRepository: TransactionsRepositoryDomain,
+    private readonly _customersRepository: CustomersRepositoryDomain,
+    private readonly _walletsRepository: WalletsRepositoryDomain,
     private readonly _utilsSharedService: UtilsSharedService,
-  ) {}
+  ) { }
 
   async createTransaction(arg: {
     walletId: string
@@ -49,5 +53,20 @@ export class TransactionsService {
     const [result, err] = await this._transactionsRepository.findByWalletId(walletId, queryPagination)
     this._utilsSharedService.checkErrDatabaseThrowErr({ err })
     return result
+  }
+
+  async getTransactionHistoryByUserId(
+    userId: string,
+    queryPagination?: QueryPaginationDto,
+  ): Promise<PaginateResultDomain<TransactionEntity>> {
+    const [customer, errCustomer] = await this._customersRepository.findByUserId(userId)
+    this._utilsSharedService.checkErrDatabaseThrowErr({ err: errCustomer })
+    this._utilsSharedService.checkErrIdNotFoundThrowErr({ result: customer })
+
+    const [wallet, errWallet] = await this._walletsRepository.findByCustomerId(customer._id)
+    this._utilsSharedService.checkErrDatabaseThrowErr({ err: errWallet })
+    this._utilsSharedService.checkErrIdNotFoundThrowErr({ result: wallet })
+
+    return this.getTransactionsByWalletId(wallet._id, queryPagination)
   }
 }
