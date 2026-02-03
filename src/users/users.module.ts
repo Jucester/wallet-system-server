@@ -9,6 +9,7 @@ import { UserSchemaMongoose } from './infrastructure/mongoose/schemas/user.schem
 import { MongooseModule } from '@nestjs/mongoose'
 import { UsersRepositoryMongoose } from './infrastructure/mongoose/repositories/users.repository.mongoose'
 import { UsersRepositoryDomain } from './domain/repository/users.repository.domain'
+import { MerchantSeederService } from './infrastructure/mongoose/seeders/merchant-seeder.service'
 
 @Module({
   imports: [
@@ -24,6 +25,7 @@ import { UsersRepositoryDomain } from './domain/repository/users.repository.doma
       useClass: UsersRepositoryMongoose,
     },
     UtilsSharedService,
+    MerchantSeederService,
   ],
 
   exports: [
