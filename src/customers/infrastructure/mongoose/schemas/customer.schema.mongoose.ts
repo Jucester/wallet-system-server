@@ -41,6 +41,12 @@ export class CustomerSchemaBaseMongoose extends Document<string> implements ICus
     default: true,
   })
   isActive: boolean
+
+  @Prop({
+    required: false,
+    trim: true,
+  })
+  avatar?: string
 }
 
 export const CustomerSchemaMongoose = SchemaFactory.createForClass(CustomerSchemaBaseMongoose)

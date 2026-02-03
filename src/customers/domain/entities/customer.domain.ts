@@ -8,6 +8,7 @@ export interface ICustomerEntity {
   document: string
   phone: string
   isActive: boolean
+  avatar?: string
   createdAt?: Date
   updatedAt?: Date
 }
@@ -32,6 +33,9 @@ export class CustomerEntity implements ICustomerEntity {
   isActive: boolean
 
   @Expose()
+  avatar?: string
+
+  @Expose()
   createdAt?: Date
 
   @Expose()
@@ -43,6 +47,7 @@ export class CustomerEntity implements ICustomerEntity {
     this.document = initProp(arg?.document)
     this.phone = initProp(arg?.phone)
     this.isActive = initProp(arg?.isActive)
+    this.avatar = initProp(arg?.avatar)
     this.createdAt = initProp(arg?.createdAt)
     this.updatedAt = initProp(arg?.updatedAt)
   }

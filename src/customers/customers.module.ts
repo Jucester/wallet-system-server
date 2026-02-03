@@ -13,6 +13,7 @@ import { WalletsRepositoryDomain } from './domain/repository/wallets.repository.
 import { UtilsSharedService } from '../shared/application/services/utils-shared.service'
 import { UsersModule } from '../users/users.module'
 import { AuthModule } from '../auth/auth.module'
+import { MerchantSeederService } from './infrastructure/mongoose/seeders/merchant-seeder.service'
 
 @Module({
   imports: [
@@ -36,6 +37,7 @@ import { AuthModule } from '../auth/auth.module'
       useClass: WalletsRepositoryMongoose,
     },
     UtilsSharedService,
+    MerchantSeederService,
   ],
   exports: [
     CustomersService,
@@ -51,4 +53,4 @@ import { AuthModule } from '../auth/auth.module'
     MongooseModule,
   ],
 })
-export class CustomersModule { }
+export class CustomersModule {}

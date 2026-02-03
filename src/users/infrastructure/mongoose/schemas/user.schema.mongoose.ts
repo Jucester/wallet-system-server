@@ -67,12 +67,6 @@ export class UserSchemaBaseMongoose extends Document<string> implements IUserEnt
     },
   })
   verification: Verification
-
-  @Prop({
-    required: false,
-    trim: true,
-  })
-  logo?: string
 }
 
 export const UserSchemaMongoose = SchemaFactory.createForClass(UserSchemaBaseMongoose)
